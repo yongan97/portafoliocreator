@@ -296,17 +296,17 @@ export async function POST(request: NextRequest) {
       yPosition += 6;
     });
 
-    yPosition += 10; // Espacio después de la tabla
+    yPosition += 5; // Espacio reducido después de la tabla
 
     // Gráfico de torta con leyenda a la derecha
     try {
       const chartImage = generatePieChart(instruments);
       const chartWidth = 150; // Más ancho para incluir leyenda
       const chartHeight = 100;
-      const chartX = (pageWidth - chartWidth) / 2; // Centrar
+      const chartX = (pageWidth - chartWidth) / 2; // Centrar horizontalmente
 
       doc.addImage(chartImage, 'PNG', chartX, yPosition, chartWidth, chartHeight);
-      yPosition += chartHeight + 12; // Espacio después del gráfico
+      yPosition += chartHeight + 6; // Espacio reducido después del gráfico
     } catch (error) {
       console.error('Error generating pie chart:', error);
       // Continuar sin el gráfico si hay error
@@ -321,7 +321,7 @@ export async function POST(request: NextRequest) {
     doc.setTextColor(...colors.azulImpulso);
     doc.setFont('helvetica', 'bold');
     doc.text('Resumen Ejecutivo', margin + 5, yPosition + 4.5);
-    yPosition += 11; // Espacio entre subtítulo y card de resumen
+    yPosition += 9; // Espacio reducido entre subtítulo y card de resumen
 
     // Card con el contenido del resumen
     const summaryLines = doc.splitTextToSize(analysis.summary, contentWidth - 10);

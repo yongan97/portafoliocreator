@@ -204,10 +204,7 @@ export default function PortfolioCreatorPage() {
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-5xl md:text-6xl font-semibold text-white mb-4">
-            Creador de{' '}
-            <span className="bg-gradient-to-r from-[#1036E2] to-[#00C600] bg-clip-text text-transparent">
-              Portafolios
-            </span>
+            Crea tu Portafolio a medida
           </h1>
           <p className="text-xl text-white/60">
             Diseña carteras personalizadas con análisis de IA y exportación profesional a PDF
