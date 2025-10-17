@@ -78,21 +78,11 @@ function generateBasicAnalysis(
     name: inst.name,
     description: getInstrumentDescription(inst),
     sector: inst.category || 'No especificado',
-    risks: getBasicRisks(inst.category || ''),
-    opportunities: getBasicOpportunities(inst.category || ''),
   }));
-
-  // Noticias genéricas
-  const news = generateBasicNews(instruments);
-
-  // Recomendaciones
-  const recommendations = generateRecommendations(riskProfile, categoryDistribution, isDiversified, maxConcentration);
 
   return {
     summary,
     instrumentDetails,
-    news,
-    recommendations,
   };
 }
 
@@ -151,92 +141,3 @@ function getInstrumentDescription(inst: { symbol: string; name: string; category
   return descriptions[category] || `${inst.name} (${inst.symbol}) es un instrumento financiero de la categoría ${category} que ofrece oportunidades de inversión específicas según el perfil y objetivos del inversor.`;
 }
 
-function getBasicRisks(category: string): string {
-  const risks: Record<string, string> = {
-    'Acciones': 'Volatilidad de mercado, riesgo cambiario (para empresas con deuda en USD), contexto macroeconómico argentino, liquidez.',
-    'Bonos Soberanos': 'Riesgo país, riesgo de default, volatilidad por cambios en tasas de interés, riesgo de restructuración.',
-    'Bonos Corporativos': 'Riesgo crediticio de la empresa emisora, sensibilidad a tasas de interés, menor liquidez que bonos soberanos.',
-    'CEDEARs': 'Riesgo cambiario (dólar CCL/MEP), volatilidad del mercado estadounidense, riesgo regulatorio local.',
-    'ETFs': 'Riesgo de mercado del índice subyacente, comisiones de gestión, tracking error.',
-    'ETFs Cripto': 'Alta volatilidad, riesgo regulatorio, exposición a activos digitales de alto riesgo.',
-    'Criptomonedas': 'Volatilidad extrema, riesgo de custodia, riesgo regulatorio, potencial pérdida total.',
-  };
-
-  return risks[category] || 'Riesgo de mercado, volatilidad, liquidez.';
-}
-
-function getBasicOpportunities(category: string): string {
-  const opportunities: Record<string, string> = {
-    'Acciones': 'Potencial de crecimiento superior a inflación, dividendos, participación en crecimiento empresarial.',
-    'Bonos Soberanos': 'Rendimientos atractivos en contexto de tasas altas, flujo de ingresos predecible, oportunidad de carry trade.',
-    'Bonos Corporativos': 'Mayores rendimientos que bonos soberanos, diversificación crediticia, análisis fundamental de empresas.',
-    'CEDEARs': 'Diversificación internacional, acceso a empresas líderes globales, cobertura ante devaluación.',
-    'ETFs': 'Diversificación inmediata, bajos costos, liquidez, rebalanceo automático.',
-    'ETFs Cripto': 'Exposición regulada a criptomonedas, sin complejidad de wallets, liquidez de mercado tradicional.',
-    'Criptomonedas': 'Alto potencial de revalorización, cobertura ante inflación, diversificación alternativa.',
-  };
-
-  return opportunities[category] || 'Potencial de rentabilidad acorde al perfil de riesgo seleccionado.';
-}
-
-function generateBasicNews(instruments: Array<{ symbol: string; name: string; category?: string }>): Array<{
-  title: string;
-  summary: string;
-  date: string;
-  relevantSymbols: string[];
-}> {
-  const today = new Date().toLocaleDateString('es-AR');
-
-  return [
-    {
-      title: 'Contexto del Mercado Argentino',
-      summary: 'El mercado argentino continúa operando en un contexto de alta volatilidad influenciado por variables macroeconómicas como inflación, política monetaria del BCRA y expectativas sobre el tipo de cambio. Los inversores mantienen atención en indicadores económicos clave.',
-      date: today,
-      relevantSymbols: instruments.map(i => i.symbol),
-    },
-    {
-      title: 'Importancia de la Diversificación',
-      summary: 'Los analistas recomiendan mantener carteras diversificadas que incluyan distintas clases de activos para mitigar riesgos específicos. La combinación de renta fija y variable, junto con exposición internacional, puede ayudar a reducir la volatilidad del portafolio.',
-      date: today,
-      relevantSymbols: instruments.map(i => i.symbol),
-    },
-  ];
-}
-
-function generateRecommendations(
-  riskProfile: string,
-  categoryDistribution: Record<string, number>,
-  isDiversified: boolean,
-  maxConcentration: number
-): string {
-  let recommendations = '';
-
-  // Diversificación
-  if (!isDiversified) {
-    recommendations += 'Se recomienda aumentar la diversificación de la cartera, idealmente distribuyendo el capital entre al menos 5-7 instrumentos diferentes. ';
-  }
-
-  // Concentración
-  if (maxConcentration > 40) {
-    recommendations += `Actualmente hay una concentración de ${maxConcentration.toFixed(1)}% en un solo instrumento, lo cual aumenta el riesgo. Considere reducir posiciones individuales a máximo 30-35% del total. `;
-  }
-
-  // Recomendaciones por perfil
-  if (riskProfile === 'conservador') {
-    const bondPercentage = (categoryDistribution['Bonos Soberanos'] || 0) + (categoryDistribution['Bonos Corporativos'] || 0);
-    if (bondPercentage < 50) {
-      recommendations += 'Para un perfil conservador, se sugiere incrementar la exposición a bonos (al menos 50-60% de la cartera). ';
-    }
-  } else if (riskProfile === 'dinámico') {
-    const equityPercentage = (categoryDistribution['Acciones'] || 0) + (categoryDistribution['CEDEARs'] || 0);
-    if (equityPercentage < 50) {
-      recommendations += 'Para un perfil dinámico, podría considerarse mayor exposición a acciones y CEDEARs (50-70% de la cartera). ';
-    }
-  }
-
-  // Recomendación general
-  recommendations += 'Es importante revisar la cartera periódicamente (al menos trimestralmente) y rebalancear cuando las desviaciones superen el 5% de los objetivos establecidos. ';
-  recommendations += 'Mantenga siempre un horizonte de inversión acorde a su perfil y objetivos financieros.';
-
-  return recommendations;
-}

@@ -19,16 +19,7 @@ interface ExportRequest {
       name: string;
       description: string;
       sector?: string;
-      risks?: string;
-      opportunities?: string;
     }>;
-    news: Array<{
-      title: string;
-      summary: string;
-      date: string;
-      relevantSymbols: string[];
-    }>;
-    recommendations?: string;
   };
 }
 
@@ -321,122 +312,6 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // ========== PÁGINA 3: NOTICIAS Y RECOMENDACIONES ==========
-
-    if (analysis.news && analysis.news.length > 0) {
-      doc.addPage();
-      yPosition = margin;
-
-      // Encabezado mejorado
-      doc.setFillColor(...colors.azulRespaldo);
-      doc.rect(0, 0, pageWidth, 35, 'F');
-      doc.setFillColor(...colors.verdeActivo);
-      doc.rect(0, 33, pageWidth, 2, 'F');
-
-      doc.setTextColor(...colors.blanco);
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Contexto de Mercado y Noticias', margin, 22);
-
-      yPosition = 45;
-
-      // Noticias con diseño limpio
-      analysis.news.forEach((newsItem, index) => {
-        if (yPosition > pageHeight - 50) {
-          doc.addPage();
-          yPosition = margin + 10;
-        }
-
-        // Título de la noticia con bullet azul
-        doc.setFillColor(...colors.azulImpulso);
-        doc.circle(margin + 2, yPosition + 1.5, 1.2, 'F');
-
-        doc.setFontSize(11);
-        doc.setTextColor(...colors.azulImpulso);
-        doc.setFont('helvetica', 'bold');
-        const titleLines = doc.splitTextToSize(newsItem.title, contentWidth - 10);
-        titleLines.forEach((line: string) => {
-          doc.text(line, margin + 6, yPosition);
-          yPosition += 6;
-        });
-
-        yPosition += 3;
-
-        // Resumen con espaciado apropiado
-        doc.setFontSize(9);
-        doc.setTextColor(...colors.negro);
-        doc.setFont('helvetica', 'normal');
-        const newsLines = doc.splitTextToSize(newsItem.summary, contentWidth - 8);
-        newsLines.forEach((line: string) => {
-          if (yPosition > pageHeight - 25) {
-            doc.addPage();
-            yPosition = margin + 10;
-          }
-          doc.text(line, margin + 6, yPosition);
-          yPosition += 4.5;
-        });
-
-        yPosition += 4;
-
-        // Fecha y símbolos relevantes
-        doc.setFillColor(...colors.grisClaro);
-        doc.roundedRect(margin + 4, yPosition - 2, contentWidth - 8, 6, 1, 1, 'F');
-        doc.setFontSize(7);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont('helvetica', 'italic');
-        doc.text(`📅 ${newsItem.date} • Relevante para: ${newsItem.relevantSymbols.join(', ')}`, margin + 6, yPosition);
-        yPosition += 10;
-
-        // Separador entre noticias
-        if (index < analysis.news.length - 1) {
-          doc.setDrawColor(...colors.grisClaro);
-          doc.setLineWidth(0.3);
-          doc.line(margin + 25, yPosition, pageWidth - margin - 25, yPosition);
-          yPosition += 10;
-        } else {
-          yPosition += 5;
-        }
-      });
-    }
-
-    // Recomendaciones con diseño destacado
-    if (analysis.recommendations) {
-      if (yPosition > pageHeight - 65) {
-        doc.addPage();
-        yPosition = margin + 10;
-      } else {
-        yPosition += 15;
-      }
-
-      // Header de recomendaciones
-      doc.setFillColor(...colors.verdeActivo);
-      doc.roundedRect(margin, yPosition, contentWidth, 11, 2, 2, 'F');
-      doc.setFontSize(13);
-      doc.setTextColor(...colors.blanco);
-      doc.setFont('helvetica', 'bold');
-      doc.text('💡 Recomendaciones', margin + 5, yPosition + 7);
-      yPosition += 15;
-
-      // Contenido de recomendaciones con fondo suave
-      const recLines = doc.splitTextToSize(analysis.recommendations, contentWidth - 14);
-      const recHeight = recLines.length * 5.5 + 12;
-
-      doc.setFillColor(240, 253, 244);
-      doc.roundedRect(margin, yPosition, contentWidth, recHeight, 2, 2, 'F');
-
-      yPosition += 7;
-      doc.setFontSize(10);
-      doc.setTextColor(...colors.negro);
-      doc.setFont('helvetica', 'normal');
-      recLines.forEach((line: string) => {
-        if (yPosition > pageHeight - 25) {
-          doc.addPage();
-          yPosition = margin + 10;
-        }
-        doc.text(line, margin + 7, yPosition);
-        yPosition += 5.5;
-      });
-    }
 
     // ========== PIE DE PÁGINA EN TODAS LAS PÁGINAS ==========
 
