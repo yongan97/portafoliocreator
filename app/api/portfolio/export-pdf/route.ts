@@ -72,7 +72,13 @@ export async function POST(request: NextRequest) {
     try {
       const logoPath = path.join(process.cwd(), 'public', 'logos', 'vetacap-logo-oficial.png');
       const logoBase64 = fs.readFileSync(logoPath).toString('base64');
-      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', margin, 15, 60, 20);
+
+      // Dimensiones originales del logo: aproximadamente 700x150 pixels
+      // Ratio: 700/150 = 4.67 (ancho es 4.67 veces el alto)
+      const logoHeight = 12; // mm
+      const logoWidth = logoHeight * 4.67; // Mantener proporción
+
+      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', margin, 18, logoWidth, logoHeight);
     } catch (error) {
       // Fallback a texto si no se encuentra la imagen
       doc.setTextColor(...colors.blanco);
