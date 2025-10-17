@@ -25,11 +25,15 @@ interface ExportRequest {
 }
 
 /**
- * Genera un gráfico de torta usando Canvas
+ * Genera un gráfico de torta usando Canvas con leyenda a la derecha
  */
 function generatePieChart(instruments: Array<{ symbol: string; name: string; percentage: number; category?: string }>): string {
-  const canvas = createCanvas(400, 400);
+  const canvas = createCanvas(600, 400);
   const ctx = canvas.getContext('2d');
+
+  // Fondo blanco
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, 600, 400);
 
   // Colores VetaCap y variaciones
   const colors = [
@@ -45,17 +49,19 @@ function generatePieChart(instruments: Array<{ symbol: string; name: string; per
     '#1A5FCC', // Azul Intermedio
   ];
 
-  // Calcular ángulos
-  let currentAngle = -Math.PI / 2; // Empezar desde arriba
-  const centerX = 200;
-  const centerY = 180;
-  const radius = 120;
+  // Centro del gráfico (más a la izquierda para dar espacio a la leyenda)
+  const centerX = 180;
+  const centerY = 200;
+  const radius = 140;
 
-  // Dibujar cada segmento
+  // Calcular ángulos y dibujar segmentos
+  let currentAngle = -Math.PI / 2; // Empezar desde arriba
+
   instruments.forEach((inst, index) => {
     const sliceAngle = (inst.percentage / 100) * 2 * Math.PI;
     const color = colors[index % colors.length];
 
+    // Dibujar segmento
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -65,35 +71,68 @@ function generatePieChart(instruments: Array<{ symbol: string; name: string; per
 
     // Borde blanco entre segmentos
     ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.stroke();
+
+    // Etiqueta en el centro del segmento
+    const labelAngle = currentAngle + sliceAngle / 2;
+    const labelRadius = radius * 0.7;
+    const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+    const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+
+    // Texto de la etiqueta (ticker y porcentaje)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Sombra para mejor legibilidad
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    ctx.fillText(`${inst.symbol}`, labelX, labelY - 8);
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(`${inst.percentage.toFixed(1)}%`, labelX, labelY + 8);
+
+    // Resetear sombra
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
 
     currentAngle += sliceAngle;
   });
 
-  // Leyenda
-  let legendY = 320;
+  // Leyenda a la derecha
+  const legendX = 380;
+  let legendY = 80;
+  const lineHeight = 20;
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
   instruments.forEach((inst, index) => {
     const color = colors[index % colors.length];
-    const legendX = 20;
 
     // Cuadrado de color
     ctx.fillStyle = color;
-    ctx.fillRect(legendX, legendY, 12, 12);
+    ctx.fillRect(legendX, legendY - 6, 14, 14);
 
-    // Texto
+    // Borde del cuadrado
+    ctx.strokeStyle = '#CCCCCC';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(legendX, legendY - 6, 14, 14);
+
+    // Texto: ticker
     ctx.fillStyle = '#000000';
-    ctx.font = 'bold 11px Arial';
-    ctx.fillText(`${inst.symbol}`, legendX + 18, legendY + 10);
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(`${inst.symbol}`, legendX + 20, legendY);
 
-    ctx.font = '10px Arial';
-    ctx.fillText(`${inst.percentage.toFixed(1)}%`, legendX + 60, legendY + 10);
+    // Texto: porcentaje
+    ctx.font = '11px Arial';
+    ctx.fillText(`${inst.percentage.toFixed(1)}%`, legendX + 100, legendY);
 
-    legendY += 18;
-    if (legendY > 380 && index < instruments.length - 1) {
-      legendY = 320;
-      // Si hay muchos instrumentos, usar segunda columna
-    }
+    legendY += lineHeight;
   });
 
   return canvas.toDataURL('image/png');
@@ -196,14 +235,14 @@ export async function POST(request: NextRequest) {
 
     yPosition += 8;
 
-    // Sección: Composición de la Cartera con barra lateral (más compacto)
+    // Sección: Composición de la Cartera con barra lateral
     doc.setFillColor(...colors.azulImpulso);
     doc.rect(margin, yPosition, 3, 7, 'F');
     doc.setFontSize(12);
     doc.setTextColor(...colors.azulImpulso);
     doc.setFont('helvetica', 'bold');
     doc.text('Composición de la Cartera', margin + 5, yPosition + 5);
-    yPosition += 10;
+    yPosition += 12; // Espacio entre subtítulo y tabla
 
     // Tabla de instrumentos más compacta
     doc.setFontSize(8);
@@ -257,17 +296,17 @@ export async function POST(request: NextRequest) {
       yPosition += 6;
     });
 
-    yPosition += 8;
+    yPosition += 10; // Espacio después de la tabla
 
-    // Gráfico de torta más pequeño
+    // Gráfico de torta con leyenda a la derecha
     try {
       const chartImage = generatePieChart(instruments);
-      const chartWidth = 100;
+      const chartWidth = 150; // Más ancho para incluir leyenda
       const chartHeight = 100;
       const chartX = (pageWidth - chartWidth) / 2; // Centrar
 
       doc.addImage(chartImage, 'PNG', chartX, yPosition, chartWidth, chartHeight);
-      yPosition += chartHeight + 10;
+      yPosition += chartHeight + 12; // Espacio después del gráfico
     } catch (error) {
       console.error('Error generating pie chart:', error);
       // Continuar sin el gráfico si hay error
@@ -282,7 +321,7 @@ export async function POST(request: NextRequest) {
     doc.setTextColor(...colors.azulImpulso);
     doc.setFont('helvetica', 'bold');
     doc.text('Resumen Ejecutivo', margin + 5, yPosition + 4.5);
-    yPosition += 9;
+    yPosition += 11; // Espacio entre subtítulo y card de resumen
 
     // Card con el contenido del resumen
     const summaryLines = doc.splitTextToSize(analysis.summary, contentWidth - 10);
