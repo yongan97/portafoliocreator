@@ -1,0 +1,18 @@
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- VETA text in white -->
+  <text x="10" y="42" font-family="'Albert Sans', sans-serif" font-size="32" font-weight="600" fill="#FFFFFF">
+    <tspan>V</tspan>
+    <tspan>E</tspan>
+    <tspan>T</tspan>
+  </text>
+
+  <!-- Green triangle (flecha/veta) -->
+  <polygon points="100,20 110,42 90,42" fill="#00C600"/>
+
+  <!-- CAP text in white -->
+  <text x="120" y="42" font-family="'Albert Sans', sans-serif" font-size="32" font-weight="600" fill="#FFFFFF">
+    <tspan>C</tspan>
+    <tspan>A</tspan>
+    <tspan>P</tspan>
+  </text>
+</svg>

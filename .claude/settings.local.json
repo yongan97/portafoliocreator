@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm i:*)",
+      "WebSearch",
+      "WebFetch(domain:www.byma.com.ar)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl -v http://localhost:3001/api/byma-login)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(git init:*)",
+      "Bash(pnpm dev)",
+      "Read(//c/Users/JohnGahan/Downloads/**)",
+      "Read(//c/Users/JohnGahan/AppData/Local/Packages/5319275A.WhatsAppDesktop_cv1g1gvanyjgm/TempState/ABB9D15B3293A96A3EA116867B2B16D5/**)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

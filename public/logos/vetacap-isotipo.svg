@@ -1,0 +1,10 @@
+<svg width="80" height="60" viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- V text -->
+  <text x="5" y="42" font-family="'Albert Sans', sans-serif" font-size="32" font-weight="700" fill="#1036E2">V</text>
+
+  <!-- A text -->
+  <text x="32" y="42" font-family="'Albert Sans', sans-serif" font-size="32" font-weight="700" fill="#1036E2">A</text>
+
+  <!-- Green triangle (flecha ascendente) -->
+  <polygon points="45,22 52,40 38,40" fill="#00C600"/>
+</svg>
