@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jsPDF } from 'jspdf';
+import fs from 'fs';
+import path from 'path';
 
 interface ExportRequest {
   clientName: string;
@@ -66,16 +68,18 @@ export async function POST(request: NextRequest) {
     doc.setFillColor(...colors.azulRespaldo);
     doc.rect(0, 0, pageWidth, 50, 'F');
 
-    // Logo VetaCap (texto)
-    doc.setTextColor(...colors.blanco);
-    doc.setFontSize(28);
-    doc.setFont('helvetica', 'bold');
-    doc.text('VETACAP', margin, 25);
-
-    // Línea verde debajo del logo
-    doc.setDrawColor(...colors.verdeActivo);
-    doc.setLineWidth(2);
-    doc.line(margin, 30, margin + 60, 30);
+    // Logo VetaCap (imagen)
+    try {
+      const logoPath = path.join(process.cwd(), 'public', 'logos', 'vetacap-logo-oficial.png');
+      const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', margin, 15, 60, 20);
+    } catch (error) {
+      // Fallback a texto si no se encuentra la imagen
+      doc.setTextColor(...colors.blanco);
+      doc.setFontSize(28);
+      doc.setFont('helvetica', 'bold');
+      doc.text('VETACAP', margin, 25);
+    }
 
     yPosition = 60;
 

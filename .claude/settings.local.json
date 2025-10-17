@@ -13,7 +13,9 @@
       "Bash(pnpm dev)",
       "Read(//c/Users/JohnGahan/Downloads/**)",
       "Read(//c/Users/JohnGahan/AppData/Local/Packages/5319275A.WhatsAppDesktop_cv1g1gvanyjgm/TempState/ABB9D15B3293A96A3EA116867B2B16D5/**)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
