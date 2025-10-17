@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jsPDF } from 'jspdf';
 import fs from 'fs';
 import path from 'path';
+import { createCanvas } from 'canvas';
 
 interface ExportRequest {
   clientName: string;
@@ -21,6 +22,81 @@ interface ExportRequest {
       sector?: string;
     }>;
   };
+}
+
+/**
+ * Genera un gráfico de torta usando Canvas
+ */
+function generatePieChart(instruments: Array<{ symbol: string; name: string; percentage: number; category?: string }>): string {
+  const canvas = createCanvas(400, 400);
+  const ctx = canvas.getContext('2d');
+
+  // Colores VetaCap y variaciones
+  const colors = [
+    '#1036E2', // Azul Impulso
+    '#00C600', // Verde Activo
+    '#021751', // Azul Respaldo
+    '#4A7FFF', // Azul Claro (variación de Impulso)
+    '#33DD33', // Verde Claro (variación de Activo)
+    '#0A2F99', // Azul Medio (variación de Respaldo)
+    '#7099FF', // Azul Más Claro
+    '#66EE66', // Verde Más Claro
+    '#152F66', // Azul Más Oscuro
+    '#1A5FCC', // Azul Intermedio
+  ];
+
+  // Calcular ángulos
+  let currentAngle = -Math.PI / 2; // Empezar desde arriba
+  const centerX = 200;
+  const centerY = 180;
+  const radius = 120;
+
+  // Dibujar cada segmento
+  instruments.forEach((inst, index) => {
+    const sliceAngle = (inst.percentage / 100) * 2 * Math.PI;
+    const color = colors[index % colors.length];
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fill();
+
+    // Borde blanco entre segmentos
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    currentAngle += sliceAngle;
+  });
+
+  // Leyenda
+  let legendY = 320;
+  instruments.forEach((inst, index) => {
+    const color = colors[index % colors.length];
+    const legendX = 20;
+
+    // Cuadrado de color
+    ctx.fillStyle = color;
+    ctx.fillRect(legendX, legendY, 12, 12);
+
+    // Texto
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 11px Arial';
+    ctx.fillText(`${inst.symbol}`, legendX + 18, legendY + 10);
+
+    ctx.font = '10px Arial';
+    ctx.fillText(`${inst.percentage.toFixed(1)}%`, legendX + 60, legendY + 10);
+
+    legendY += 18;
+    if (legendY > 380 && index < instruments.length - 1) {
+      legendY = 320;
+      // Si hay muchos instrumentos, usar segunda columna
+    }
+  });
+
+  return canvas.toDataURL('image/png');
 }
 
 /**
@@ -58,13 +134,13 @@ export async function POST(request: NextRequest) {
 
     // ========== PÁGINA 1: PORTADA Y RESUMEN ==========
 
-    // Fondo de encabezado con gradiente visual
+    // Fondo de encabezado más fino
     doc.setFillColor(...colors.azulRespaldo);
-    doc.rect(0, 0, pageWidth, 55, 'F');
+    doc.rect(0, 0, pageWidth, 35, 'F');
 
     // Línea de acento verde
     doc.setFillColor(...colors.verdeActivo);
-    doc.rect(0, 53, pageWidth, 2, 'F');
+    doc.rect(0, 33, pageWidth, 2, 'F');
 
     // Logo VetaCap (imagen)
     try {
@@ -73,10 +149,10 @@ export async function POST(request: NextRequest) {
 
       // Dimensiones originales del logo: aproximadamente 700x150 pixels
       // Ratio: 700/150 = 4.67 (ancho es 4.67 veces el alto)
-      const logoHeight = 12; // mm
+      const logoHeight = 10; // mm más pequeño
       const logoWidth = logoHeight * 4.67; // Mantener proporción
 
-      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', margin, 20, logoWidth, logoHeight);
+      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', margin, 12, logoWidth, logoHeight);
     } catch (error) {
       // Fallback a texto si no se encuentra la imagen
       doc.setTextColor(...colors.blanco);
@@ -85,66 +161,64 @@ export async function POST(request: NextRequest) {
       doc.text('VETACAP', margin, 28);
     }
 
-    yPosition = 70;
+    yPosition = 45;
 
-    // Título del documento en card
+    // Título del documento en card más compacto
     doc.setFillColor(...colors.azulImpulso);
-    doc.roundedRect(margin, yPosition, contentWidth, 16, 2, 2, 'F');
+    doc.roundedRect(margin, yPosition, contentWidth, 12, 2, 2, 'F');
     doc.setTextColor(...colors.blanco);
-    doc.setFontSize(20);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Propuesta de Portafolio', margin + 5, yPosition + 10);
-    yPosition += 20;
+    doc.text('Propuesta de Portafolio', margin + 4, yPosition + 8);
+    yPosition += 15;
 
-    // Card de información del cliente
+    // Card de información del cliente más compacto (una línea)
     doc.setFillColor(...colors.grisClaro);
-    doc.roundedRect(margin, yPosition, contentWidth, 26, 2, 2, 'F');
+    doc.roundedRect(margin, yPosition, contentWidth, 10, 2, 2, 'F');
 
-    yPosition += 8;
-    doc.setFontSize(10);
+    yPosition += 7;
+    doc.setFontSize(8);
     doc.setTextColor(...colors.negro);
     doc.setFont('helvetica', 'bold');
-    doc.text('Cliente:', margin + 5, yPosition);
+    doc.text('Cliente:', margin + 3, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(clientName, margin + 23, yPosition);
+    doc.text(clientName, margin + 18, yPosition);
 
-    yPosition += 7;
     doc.setFont('helvetica', 'bold');
-    doc.text('Perfil de Riesgo:', margin + 5, yPosition);
+    doc.text('Perfil:', margin + 70, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(riskProfile.charAt(0).toUpperCase() + riskProfile.slice(1), margin + 33, yPosition);
+    doc.text(riskProfile.charAt(0).toUpperCase() + riskProfile.slice(1), margin + 85, yPosition);
 
-    yPosition += 7;
     doc.setFont('helvetica', 'bold');
-    doc.text('Fecha:', margin + 5, yPosition);
+    doc.text('Fecha:', margin + 130, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(new Date().toLocaleDateString('es-AR'), margin + 19, yPosition);
+    doc.text(new Date().toLocaleDateString('es-AR'), margin + 144, yPosition);
 
-    yPosition += 14;
+    yPosition += 8;
 
-    // Sección: Composición de la Cartera con barra lateral
+    // Sección: Composición de la Cartera con barra lateral (más compacto)
     doc.setFillColor(...colors.azulImpulso);
-    doc.rect(margin, yPosition, 3, 9, 'F');
-    doc.setFontSize(15);
+    doc.rect(margin, yPosition, 3, 7, 'F');
+    doc.setFontSize(12);
     doc.setTextColor(...colors.azulImpulso);
     doc.setFont('helvetica', 'bold');
-    doc.text('Composición de la Cartera', margin + 6, yPosition + 6.5);
-    yPosition += 14;
+    doc.text('Composición de la Cartera', margin + 5, yPosition + 5);
+    yPosition += 10;
 
-    // Tabla de instrumentos con bordes profesionales
-    doc.setFontSize(10);
+    // Tabla de instrumentos más compacta
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
 
     // Encabezados de tabla con estilo mejorado
     doc.setFillColor(...colors.azulRespaldo);
-    doc.roundedRect(margin, yPosition - 5, contentWidth, 9, 1, 1, 'F');
+    doc.roundedRect(margin, yPosition - 4, contentWidth, 7, 1, 1, 'F');
     doc.setTextColor(...colors.blanco);
     doc.setFont('helvetica', 'bold');
-    doc.text('Símbolo', margin + 3, yPosition);
-    doc.text('Nombre', margin + 30, yPosition);
-    doc.text('Categoría', margin + 100, yPosition);
-    doc.text('Porcentaje', margin + 140, yPosition);
-    yPosition += 10;
+    doc.text('Símbolo', margin + 2, yPosition);
+    doc.text('Nombre', margin + 25, yPosition);
+    doc.text('Categoría', margin + 90, yPosition);
+    doc.text('%', margin + 135, yPosition);
+    yPosition += 8;
 
     // Filas de instrumentos con mejor separación
     doc.setFont('helvetica', 'normal');
@@ -157,160 +231,76 @@ export async function POST(request: NextRequest) {
       // Alternar color de fondo con tonos suaves
       if (index % 2 === 0) {
         doc.setFillColor(248, 249, 250);
-        doc.rect(margin, yPosition - 5, contentWidth, 8, 'F');
+        doc.rect(margin, yPosition - 4, contentWidth, 6, 'F');
       }
 
       doc.setTextColor(...colors.negro);
-      doc.setFontSize(9);
-      doc.text(inst.symbol, margin + 3, yPosition);
-      doc.text(inst.name.substring(0, 35), margin + 30, yPosition);
-      doc.text(inst.category || 'N/A', margin + 100, yPosition);
+      doc.setFontSize(8);
+
+      // Símbolo con link clickeable al PDF del instrumento
+      doc.setTextColor(...colors.azulImpulso);
+      doc.textWithLink(inst.symbol, margin + 2, yPosition, {
+        url: `/api/portfolio/instrument-pdf?symbol=${encodeURIComponent(inst.symbol)}&name=${encodeURIComponent(inst.name)}&category=${encodeURIComponent(inst.category || '')}`
+      });
+
+      doc.setTextColor(...colors.negro);
+      doc.text(inst.name.substring(0, 32), margin + 25, yPosition);
+      doc.text(inst.category || 'N/A', margin + 90, yPosition);
 
       // Porcentaje con color de acento
       doc.setTextColor(...colors.azulImpulso);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${inst.percentage.toFixed(2)}%`, margin + 140, yPosition);
+      doc.text(`${inst.percentage.toFixed(1)}%`, margin + 135, yPosition);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...colors.negro);
 
-      yPosition += 8;
+      yPosition += 6;
     });
 
-    yPosition += 5;
+    yPosition += 8;
 
-    // Total con card destacado
-    doc.setFillColor(...colors.verdeActivo);
-    doc.roundedRect(margin + 110, yPosition - 3, 60, 10, 2, 2, 'F');
-    doc.setTextColor(...colors.blanco);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    const totalPercentage = instruments.reduce((sum, inst) => sum + inst.percentage, 0);
-    doc.text(`TOTAL: ${totalPercentage.toFixed(2)}%`, margin + 115, yPosition + 4);
-    doc.setTextColor(...colors.negro);
-    yPosition += 18;
+    // Gráfico de torta más pequeño
+    try {
+      const chartImage = generatePieChart(instruments);
+      const chartWidth = 100;
+      const chartHeight = 100;
+      const chartX = (pageWidth - chartWidth) / 2; // Centrar
 
-    // Resumen Ejecutivo con card profesional
-    if (yPosition > pageHeight - 60) {
-      doc.addPage();
-      yPosition = margin;
+      doc.addImage(chartImage, 'PNG', chartX, yPosition, chartWidth, chartHeight);
+      yPosition += chartHeight + 10;
+    } catch (error) {
+      console.error('Error generating pie chart:', error);
+      // Continuar sin el gráfico si hay error
+      yPosition += 5;
     }
 
+    // Resumen Ejecutivo compacto
     // Título con barra lateral
     doc.setFillColor(...colors.azulImpulso);
-    doc.rect(margin, yPosition, 3, 9, 'F');
-    doc.setFontSize(15);
+    doc.rect(margin, yPosition, 3, 6, 'F');
+    doc.setFontSize(11);
     doc.setTextColor(...colors.azulImpulso);
     doc.setFont('helvetica', 'bold');
-    doc.text('Resumen Ejecutivo', margin + 6, yPosition + 6.5);
-    yPosition += 14;
+    doc.text('Resumen Ejecutivo', margin + 5, yPosition + 4.5);
+    yPosition += 9;
 
     // Card con el contenido del resumen
-    const summaryLines = doc.splitTextToSize(analysis.summary, contentWidth - 12);
-    const cardHeight = summaryLines.length * 5.5 + 12;
+    const summaryLines = doc.splitTextToSize(analysis.summary, contentWidth - 10);
+    const cardHeight = summaryLines.length * 4.5 + 8;
 
     doc.setFillColor(...colors.grisClaro);
     doc.roundedRect(margin, yPosition, contentWidth, cardHeight, 2, 2, 'F');
 
-    yPosition += 8;
-    doc.setFontSize(10);
+    yPosition += 5;
+    doc.setFontSize(8);
     doc.setTextColor(...colors.negro);
     doc.setFont('helvetica', 'normal');
     summaryLines.forEach((line: string) => {
-      if (yPosition > pageHeight - 20) {
-        doc.addPage();
-        yPosition = margin;
-      }
-      doc.text(line, margin + 6, yPosition);
-      yPosition += 5.5;
+      doc.text(line, margin + 4, yPosition);
+      yPosition += 4.5;
     });
 
-    yPosition += 10;
-
-    // ========== PÁGINA 2: ANÁLISIS DETALLADO ==========
-
-    doc.addPage();
-    yPosition = margin;
-
-    // Encabezado de página mejorado
-    doc.setFillColor(...colors.azulRespaldo);
-    doc.rect(0, 0, pageWidth, 35, 'F');
-    doc.setFillColor(...colors.verdeActivo);
-    doc.rect(0, 33, pageWidth, 2, 'F');
-
-    doc.setTextColor(...colors.blanco);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Análisis Detallado de Instrumentos', margin, 22);
-
-    yPosition = 45;
-
-    // Análisis de cada instrumento con diseño limpio y profesional
-    analysis.instrumentDetails.forEach((inst, index) => {
-      if (yPosition > pageHeight - 70) {
-        doc.addPage();
-        yPosition = margin + 10;
-      }
-
-      // Header del instrumento con badge azul
-      doc.setFillColor(...colors.azulImpulso);
-      doc.roundedRect(margin, yPosition, contentWidth, 11, 2, 2, 'F');
-      doc.setFontSize(11);
-      doc.setTextColor(...colors.blanco);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${inst.symbol}`, margin + 4, yPosition + 7);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`- ${inst.name}`, margin + 4 + doc.getTextWidth(`${inst.symbol}`) + 2, yPosition + 7);
-      yPosition += 14;
-
-      // Card contenedor con borde sutil
-      const contentStartY = yPosition;
-
-      // Sector badge
-      if (inst.sector) {
-        doc.setFillColor(...colors.grisClaro);
-        doc.roundedRect(margin, yPosition, 55, 6, 1, 1, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
-        doc.setTextColor(...colors.azulRespaldo);
-        doc.text(`CATEGORÍA: ${inst.sector.toUpperCase()}`, margin + 2, yPosition + 4);
-        yPosition += 10;
-      }
-
-      // Descripción completa con espaciado apropiado
-      doc.setFontSize(9);
-      doc.setTextColor(...colors.negro);
-      doc.setFont('helvetica', 'normal');
-
-      // Dividir el texto en líneas con ancho apropiado
-      const descLines = doc.splitTextToSize(inst.description, contentWidth - 4);
-
-      descLines.forEach((line: string, lineIndex: number) => {
-        if (yPosition > pageHeight - 25) {
-          doc.addPage();
-          yPosition = margin + 10;
-        }
-
-        // Texto justificado con sangría de primera línea si es el inicio de un párrafo
-        const xPos = margin + 2;
-        doc.text(line, xPos, yPosition);
-
-        // Interlineado de 4.5mm
-        yPosition += 4.5;
-      });
-
-      yPosition += 8;
-
-      // Separador elegante entre instrumentos
-      if (index < analysis.instrumentDetails.length - 1) {
-        doc.setDrawColor(...colors.grisClaro);
-        doc.setLineWidth(0.5);
-        doc.line(margin + 30, yPosition, pageWidth - margin - 30, yPosition);
-        yPosition += 12;
-      } else {
-        yPosition += 5;
-      }
-    });
+    yPosition += 5;
 
 
     // ========== PIE DE PÁGINA EN TODAS LAS PÁGINAS ==========
@@ -337,16 +327,11 @@ export async function POST(request: NextRequest) {
       doc.setTextColor(...colors.gris);
       doc.text('| El foco está en vos', margin + 14, pageHeight - 10);
 
-      // Número de página en círculo
-      doc.setFillColor(...colors.azulImpulso);
-      doc.circle(pageWidth - margin - 15, pageHeight - 11, 3, 'F');
-      doc.setTextColor(...colors.blanco);
+      // Número de página sin círculo
+      doc.setTextColor(...colors.azulRespaldo);
       doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${i}`, pageWidth - margin - 16.5, pageHeight - 9.5);
-      doc.setTextColor(...colors.gris);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`de ${pageCount}`, pageWidth - margin - 10, pageHeight - 10);
+      doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin - 25, pageHeight - 10);
 
       // Confidencialidad centrada
       doc.setFontSize(7);

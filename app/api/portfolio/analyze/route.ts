@@ -123,19 +123,19 @@ function getInstrumentDescription(inst: { symbol: string; name: string; category
   const category = inst.category || 'Instrumento financiero';
 
   const descriptions: Record<string, string> = {
-    'Acciones': `${inst.name} (${inst.symbol}) representa participación en el capital social de la empresa. Permite obtener retornos por apreciación del precio y distribución de dividendos. Opera en un mercado de alta volatilidad influenciado por variables macroeconómicas locales. Instrumento apropiado para inversores con horizonte de mediano a largo plazo que buscan crecimiento superior a la inflación.`,
+    'Acciones': `${inst.name} (${inst.symbol}) es una acción que representa una participación en el capital social de la empresa, otorgando derechos de propiedad proporcionales al inversor.`,
 
-    'Bonos Soberanos': `${inst.name} (${inst.symbol}) es un título de deuda emitido por el Estado Nacional Argentino. Ofrece pagos periódicos de intereses y devolución del capital al vencimiento. Puede estar denominado en pesos, dólares o ajustado por CER, cada uno con su perfil de riesgo específico. Apropiado para inversores que buscan flujos de ingresos predecibles asumiendo riesgo soberano.`,
+    'Bonos Soberanos': `${inst.name} (${inst.symbol}) es un título de deuda emitido por el Estado Nacional Argentino, mediante el cual el inversor presta dinero al gobierno a cambio de pagos periódicos de intereses y la devolución del capital al vencimiento.`,
 
-    'Bonos Corporativos': `${inst.name} (${inst.symbol}) es un título de deuda emitido por una empresa privada. El riesgo crediticio depende de la salud financiera de la emisora. Ofrece rendimientos superiores a bonos soberanos del mismo plazo para compensar el riesgo adicional. Adecuado para inversores que buscan diversificación crediticia y mayores retornos con análisis fundamental de la compañía.`,
+    'Bonos Corporativos': `${inst.name} (${inst.symbol}) es un título de deuda emitido por una empresa privada para financiar sus operaciones, mediante el cual el inversor recibe cupones de intereses periódicos y la devolución del principal al vencimiento.`,
 
-    'CEDEARs': `${inst.name} (${inst.symbol}) es un Certificado de Depósito Argentino que representa acciones de compañías extranjeras. Permite acceso a activos internacionales operando en pesos desde el mercado local. Brinda exposición dual: al desempeño de la empresa internacional y al tipo de cambio (MEP/CCL). Ideal para diversificación geográfica, cobertura cambiaria y acceso a sectores globales.`,
+    'CEDEARs': `${inst.name} (${inst.symbol}) es un Certificado de Depósito Argentino que representa acciones de una compañía extranjera, permitiendo a inversores locales acceder a activos internacionales operando desde el mercado argentino.`,
 
-    'ETFs': `${inst.name} (${inst.symbol}) es un fondo cotizado que ofrece exposición diversificada a un conjunto de activos. Replica índices de mercado, sectores o regiones con alta liquidez y bajos costos de gestión (0.05%-0.70% anual). Proporciona diversificación instantánea, rebalanceo automático y transparencia diaria de composición. Apropiado para cualquier perfil de inversor según el ETF elegido.`,
+    'ETFs': `${inst.name} (${inst.symbol}) es un Exchange Traded Fund (fondo cotizado en bolsa) que ofrece exposición diversificada a un conjunto de activos mediante un único instrumento que cotiza como una acción.`,
 
-    'ETFs Cripto': `${inst.name} (${inst.symbol}) es un fondo cotizado especializado que brinda exposición al mercado de criptomonedas sin necesidad de gestionar wallets o claves privadas. Opera en bolsas reguladas con custodia institucional de los activos digitales. Presenta volatilidad extrema característica del mercado cripto. Apropiado exclusivamente para inversores con perfil dinámico/agresivo, representando máximo 5-10% del portafolio total.`,
+    'ETFs Cripto': `${inst.name} (${inst.symbol}) es un Exchange Traded Fund especializado que proporciona exposición al mercado de criptomonedas y activos digitales a través de un vehículo de inversión regulado.`,
 
-    'Criptomonedas': `${inst.name} (${inst.symbol}) es un activo digital descentralizado que opera sobre tecnología blockchain. La inversión directa implica responsabilidad completa sobre custodia y seguridad mediante gestión de wallets. Presenta volatilidad extrema con caídas/subas superiores a 20-50% en períodos cortos. Ofrece potencial de diversificación alternativa y cobertura contra inflación fiat. Solo apropiado para inversores sofisticados con perfil agresivo, capital prescindible y horizonte de muy largo plazo.`,
+    'Criptomonedas': `${inst.name} (${inst.symbol}) es un activo digital descentralizado que opera sobre tecnología blockchain, funcionando como medio de intercambio, reserva de valor, o plataforma para aplicaciones descentralizadas.`,
   };
 
   return descriptions[category] || `${inst.name} (${inst.symbol}) es un instrumento financiero de la categoría ${category} que ofrece oportunidades de inversión específicas según el perfil y objetivos del inversor.`;
